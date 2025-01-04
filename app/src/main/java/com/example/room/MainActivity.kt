@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.room.database.daftarBelanja
 import com.example.room.database.daftarBelanjaDB
+import com.example.room.database.historyBarang
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +23,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var  DB : daftarBelanjaDB
     private lateinit var  adapterDaftar: adapterDaftar
     private var arDaftar : MutableList<daftarBelanja> = mutableListOf()
+    private lateinit var adapterHistory: adapterHistory
+    private var arHistory: MutableList<historyBarang> = mutableListOf()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,6 +36,10 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        adapterHistory = adapterHistory(arHistory)
+        val _rvHistory = findViewById<RecyclerView>(R.id.rvHistory) // Pastikan ID RV untuk history sesuai
+        _rvHistory.layoutManager = LinearLayoutManager(this)
+        _rvHistory.adapter = adapterHistory
 
         DB = daftarBelanjaDB.getDatabase(this)
 
@@ -47,17 +55,36 @@ class MainActivity : AppCompatActivity() {
 
         adapterDaftar.setOnItemClickCallback(
             object : adapterDaftar.OnItemClickCallback {
-                override fun delData(dtBelanja: daftarBelanja){
+                override fun delData(dtBelanja: daftarBelanja) {
                     CoroutineScope(Dispatchers.IO).async {
                         DB.daftarBelanjaDAO().delete(dtBelanja)
                         val daftarBelanja = DB.daftarBelanjaDAO().selectAll()
-                        withContext(Dispatchers.Main){
+                        withContext(Dispatchers.Main) {
                             adapterDaftar.isiData(daftarBelanja)
+                        }
+                    }
+                }
+
+                override fun dataDone(dtBelanja: daftarBelanja) {
+                    CoroutineScope(Dispatchers.IO).async {
+                        DB.daftarBelanjaDAO().delete(dtBelanja)
+                        val historyItem = historyBarang(
+                            tanggal = dtBelanja.tanggal,
+                            item = dtBelanja.item,
+                            jumlah = dtBelanja.jumlah
+                        )
+                        DB.historyBarangDAO().insert(historyItem)
+                        val daftarBelanja = DB.daftarBelanjaDAO().selectAll()
+                        val history = DB.historyBarangDAO().selectAll()
+                        withContext(Dispatchers.Main) {
+                            adapterDaftar.isiData(daftarBelanja)
+                            adapterHistory.isiData(history)
                         }
                     }
                 }
             }
         )
+
 
     }
 
@@ -68,6 +95,11 @@ class MainActivity : AppCompatActivity() {
             val daftarBelanja = DB.daftarBelanjaDAO().selectAll()
             adapterDaftar.isiData(daftarBelanja)
             Log.d("data ROOM", daftarBelanja.toString())
+        }
+        CoroutineScope(Dispatchers.Main).async{
+            val history = DB.historyBarangDAO().selectAll()
+            adapterHistory.isiData(history)
+            Log.d("data ROOM", history.toString())
         }
     }
 }

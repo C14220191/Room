@@ -4,6 +4,7 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.room.database.daftarBelanja
@@ -12,18 +13,20 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 class adapterDaftar (private val daftarBelanja: MutableList <daftarBelanja>):
         RecyclerView.Adapter<adapterDaftar.ListViewHolder>() {
     class ListViewHolder (itemView: View): RecyclerView.ViewHolder(itemView){
-        var _tvTanggal = itemView.findViewById<TextView>(R.id.tvTanggal)
-        var _tvItemBarang = itemView.findViewById<TextView>(R.id.tvItemBarang)
-        var _tvJumlah = itemView.findViewById<TextView>(R.id.tvJumlah)
+        var _tvTanggal = itemView.findViewById<TextView>(R.id.tvHTanggal)
+        var _tvItemBarang = itemView.findViewById<TextView>(R.id.tvHItemBarang)
+        var _tvJumlah = itemView.findViewById<TextView>(R.id.tvHJumlah)
 
         var _btnEdit = itemView.findViewById<FloatingActionButton>(R.id.btnEdit)
         var _btnDelete = itemView.findViewById<FloatingActionButton>(R.id.btnDelete)
+        var _btnDone = itemView.findViewById<Button>(R.id.btnDone)
     }
 
     private lateinit var onItemClickCallback: OnItemClickCallback
 
     interface OnItemClickCallback {
         fun delData(dtBelanja: daftarBelanja)
+        fun dataDone(dtBelanja: daftarBelanja)
     }
 
     fun setOnItemClickCallback(onItemClickCallback: OnItemClickCallback) {
@@ -57,6 +60,10 @@ class adapterDaftar (private val daftarBelanja: MutableList <daftarBelanja>):
 
         holder._btnDelete.setOnClickListener {
             onItemClickCallback.delData(daftar)
+        }
+
+        holder._btnDone.setOnClickListener {
+            onItemClickCallback.dataDone(daftar)
         }
     }
 
